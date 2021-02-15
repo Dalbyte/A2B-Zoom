@@ -3,6 +3,7 @@
 #include <U8x8lib.h>
 #include "Button2.h"; //  https://github.com/LennartHennigs/Button2
 #include "ESPRotary.h";
+#include "funktion.h";
 
 
 /* Display */
@@ -21,17 +22,11 @@ U8X8_SSD1306_128X64_NONAME_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
 #define ROTARY_PIN1  2 // Wemos-D1-mini D4
 #define ROTARY_PIN2 0 // Wemos-D1-mini D3
 #define BUTTON_PIN  3 // Wemos-D1-mini RX
-
-//int StepEnable = 16; // Enable Wemos-D1-mini D4
-int StepStep = 16; // Step Wemos-D1-mini D3
-int StepDir = 14 ; // Richtung Wemos-D1-mini D2
-
-
-
 /*----------------------------------*/
 
 /* Drehregler */
 /////////////////////////////////////////////////////////////////
+
 #define CLICKS_PER_STEP   4   // this number depends on your rotary encoder 
 ESPRotary r = ESPRotary(ROTARY_PIN1, ROTARY_PIN2, CLICKS_PER_STEP);
 Button2 b = Button2(BUTTON_PIN);
@@ -51,6 +46,11 @@ int SetMenuBlink = 0;
 int BlinkTime = 20000;
 int BlinkTimeCount = 0;
 /*----------------------------------*/
+
+/*SchrittMotor*/
+int StepStep = 14; // Step Wemos-D1-mini D3
+int StepDir = 12; // Richtung Wemos-D1-mini D2
+int StepPauseStep = 500;
 
 
 
@@ -80,11 +80,13 @@ void setup(void)
   pinMode(StepStep, OUTPUT); // Step
   pinMode(StepDir, OUTPUT); // Richtung
   /*----------------------------------*/
+
+  zeit();
 }
 
 void loop(void)
 {
-  if(SetMenu){menue();}
+  //if(SetMenu){menue();} // CoverBild
   spin();
 
 }
@@ -105,11 +107,9 @@ void showDirection(ESPRotary& r) {
 }
 
 void plus(ESPRotary& r){
-  stepMotorPlus();
   Serial.println("stepPlus");
   }
 void minus(ESPRotary& r){
-  stepMotorMinus();
   Serial.println("stepMinus");
   }
  
@@ -125,6 +125,7 @@ void resetPosition(Button2& btn) {
 }
 /*----------------------------------*/
 
+// Printwerte
 void oled(int p){
   u8x8.clear();
   u8x8.setFont(u8x8_font_chroma48medium8_r);
@@ -134,42 +135,87 @@ void oled(int p){
 }
 
 void menue(){
-  /*
+
   // Überschrift
   u8x8.clear();
   u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
   u8x8.drawString(0, 0, "A2B-Zoom");
   /*----------------------------------*/
 
-  /*
-  // Fusszeile
+  // Call to Action
   u8x8.setFont(u8x8_font_chroma48medium8_r);
-      u8x8.setInverseFont(SetMenuBlink);
-      u8x8.drawString(0,7,"made by Dalbyte");
+  u8x8.setInverseFont(1);
+  u8x8.drawString(0,4,"   Dreh mich!   ");
   /*----------------------------------*/
 
-  /*
-  while (SetMenu) {
-      ++BlinkTimeCount;
-      if(BlinkTimeCount >= BlinkTime){
-      if(SetMenuBlink==0){
-        SetMenuBlink=1;
-        BlinkTimeCount=0;
-      }else{
-        SetMenuBlink=0;
-        BlinkTimeCount=0;
-      }
-      PleaseInput();
-      }
-      spin();
-  }
-  */
+  // Fusszeile
+  u8x8.setFont(u8x8_font_chroma48medium8_r);
+  u8x8.setInverseFont(0);
+  u8x8.drawString(0,7,"made by Dalbyte");
+  /*----------------------------------*/
+
+  u8x8.refreshDisplay();
+
 }
-void PleaseInput(){
- u8x8.setFont(u8x8_font_chroma48medium8_r);
- u8x8.setInverseFont(SetMenuBlink);
- u8x8.drawString(0,4,"   Dreh mich!   ");
- u8x8.refreshDisplay();
+
+void zeit(){
+
+  // Überschrift
+  u8x8.clear();
+  u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+  u8x8.drawString(0, 0, "__ZEIT__");
+  /*----------------------------------*/
+
+  // Beschriftung Timer
+  u8x8.setFont(u8x8_font_chroma48medium8_r);
+  u8x8.setInverseFont(0);
+  u8x8.drawString(0,2,"  H : MIN : SS ");
+
+  // Timer
+  u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+  u8x8.setInverseFont(1);
+  u8x8.drawString(0,3,"00:00:00");
+  /*----------------------------------*/
+
+  // Beschreibung
+  u8x8.setFont(u8x8_font_chroma48medium8_r);
+  u8x8.setInverseFont(0);
+  u8x8.drawString(0,6,"*Zeit von Punkt");
+  u8x8.drawString(0,7," A zu B drehen");
+  /*----------------------------------*/
+
+  u8x8.refreshDisplay();
+
+}
+
+void AB(){
+
+  // Überschrift
+  u8x8.clear();
+  u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+  u8x8.drawString(0, 0, "__A->B__");
+  /*----------------------------------*/
+
+  // Fusszeile
+  u8x8.setFont(u8x8_font_chroma48medium8_r);
+  u8x8.setInverseFont(0);
+  u8x8.drawString(0,2,"  H : MIN : SS ");
+
+  // Call to Action
+  u8x8.setFont(u8x8_font_px437wyse700b_2x2_r);
+  u8x8.setInverseFont(1);
+  u8x8.drawString(0,3,"00:00:00");
+  /*----------------------------------*/
+
+  // Fusszeile
+  u8x8.setFont(u8x8_font_chroma48medium8_r);
+  u8x8.setInverseFont(0);
+  u8x8.drawString(0,6,"*Zeit von Punkt");
+  u8x8.drawString(0,7," A zu B drehen");
+  /*----------------------------------*/
+
+  u8x8.refreshDisplay();
+
 }
 
 void spin(){
@@ -180,25 +226,29 @@ void spin(){
 
 /* DrehenDirekt */
 /////////////////////////////////////////////////////////////////
-void stepMotorPlus(){
-
-  for (int i = 0; i <= 255; i++) {
-  digitalWrite(StepDir,HIGH); // im Uhrzeigersinn
-  digitalWrite(StepStep,HIGH);
-  delayMicroseconds(500);
-  digitalWrite(StepStep,LOW);
-  delayMicroseconds(500);
-  Serial.println("Schritt");
-  }
-
+void run(int A2B, bool dir){
+    for (int i = 0; i <= A2B; i++){
+      Step(dir); // Schritt
+      // Position
+    }
 }
 
-void stepMotorMinus(){
+/* DrehenDirekt */
+/////////////////////////////////////////////////////////////////
 
-  digitalWrite(StepDir,LOW); // im Uhrzeigersinn
+void Step(bool dir){
+  // Richtung
+  if(dir){
+    Serial.println("Step>");
+    digitalWrite(StepDir,HIGH);
+  }else{
+    Serial.println("<Step");
+    digitalWrite(StepDir,LOW);
+  }
+
+  // Geh Schritt
   digitalWrite(StepStep,HIGH);
-  delayMicroseconds(500);
+  delayMicroseconds(StepPauseStep);
   digitalWrite(StepStep,LOW);
-  delayMicroseconds(500);
-
+  delayMicroseconds(StepPauseStep);
 }
